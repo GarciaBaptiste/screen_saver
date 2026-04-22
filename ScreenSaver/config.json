@@ -1,0 +1,13 @@
+{
+  "idle_threshold_seconds": 5,
+  "theme": "dark",
+  "clock": {
+    "show_digital_watermark": true,
+    "watermark_opacity": 0.12,
+    "font_family": "Segoe UI Light"
+  },
+  "calendar": {
+    "show_month_grid": true,
+    "first_day_of_week": "Monday"
+  }
+}
