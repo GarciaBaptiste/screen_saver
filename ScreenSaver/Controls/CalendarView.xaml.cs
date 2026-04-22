@@ -139,12 +139,9 @@ public partial class CalendarView : UserControl
             if (isToday)
                 cell.SetResourceReference(TextBlock.ForegroundProperty, "AccentBrush");
             else if (isWeekend)
-                cell.SetResourceReference(TextBlock.ForegroundProperty, "AccentBrush");
+                cell.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
             else
                 cell.SetResourceReference(TextBlock.ForegroundProperty, "TextOnDarkBrush");
-
-            if (isWeekend && !isToday)
-                cell.Opacity = 0.55;
 
             Grid.SetRow(cell, row);
             Grid.SetColumn(cell, col);

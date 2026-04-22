@@ -28,7 +28,8 @@
                        FontSize="280"
                        FontWeight="Light"
                        HorizontalAlignment="Center"
-                       Margin="0,0,0,0">
+                       Margin="0,0,0,0"
+                       TextOptions.TextFormattingMode="Display">
                 <TextBlock.Foreground>
                     <DynamicResource ResourceKey="TextOnDarkBrush"/>
                 </TextBlock.Foreground>
@@ -39,7 +40,8 @@
                        FontFamily="Segoe UI Light"
                        FontSize="36"
                        HorizontalAlignment="Center"
-                       Margin="0,8,0,40">
+                       Margin="0,8,0,40"
+                       TextOptions.TextFormattingMode="Display">
                 <TextBlock.Foreground>
                     <DynamicResource ResourceKey="MutedBrush"/>
                 </TextBlock.Foreground>
