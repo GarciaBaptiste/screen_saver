@@ -6,7 +6,7 @@
     <Color x:Key="FaceColor">#FAFAF7</Color>
     <Color x:Key="TextPrimaryColor">#1C1C1A</Color>
     <Color x:Key="TextOnDarkColor">#1C1C1A</Color>
-    <Color x:Key="AccentColor">#E85D00</Color>
+    <Color x:Key="AccentColor">#BF4E16</Color>
     <Color x:Key="MutedColor">#B0ADA6</Color>
 
     <!-- ── Brushes ─────────────────────────────────────────────────────── -->
@@ -19,5 +19,7 @@
 
     <!-- Hour / minute hands: dark on light background -->
     <SolidColorBrush x:Key="HandBrush"        Color="{StaticResource TextPrimaryColor}"/>
+    <!-- Clock-only white: slightly softened dark for hands/ticks/digits on light face -->
+    <SolidColorBrush x:Key="ClockWhiteBrush"  Color="#383533"/>
 
 </ResourceDictionary>
