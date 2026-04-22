@@ -2,6 +2,9 @@
 bin/
 obj/
 
+# Duplicate solution file inside project subfolder
+ScreenSaver/ScreenSaver.sln
+
 # User-specific Visual Studio / Rider files
 *.user
 *.suo
@@ -11,6 +14,9 @@ obj/
 # NuGet
 *.nupkg
 packages/
+
+# Claude Code local settings
+.claude/
 
 # OS
 Thumbs.db
