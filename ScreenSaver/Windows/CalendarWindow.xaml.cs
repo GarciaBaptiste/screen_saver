@@ -1,3 +1,4 @@
+using ScreenSaver.Core;
 using ScreenSaver.Native;
 using System.Windows;
 using System.Windows.Input;
@@ -17,6 +18,7 @@ public partial class CalendarWindow : Window
         _onMouseMove = onMouseMove;
         _onInput     = onInput;
         CalView.IsCompact = isCompact;
+        GrainOverlay.Fill = GrainHelper.CreateBrush();
         SourceInitialized += OnSourceInitialized;
     }
 
