@@ -3,7 +3,7 @@
 ## Vue d'ensemble
 
 Économiseur d'écran standalone pour Windows 11, deux moniteurs avec contenu différencié :
-- **Écran principal** : horloge analogique avec aiguilles + cadran numérique en filigrane
+- **Écran principal** : horloge analogique avec aiguilles + filigrane numérique HH:mm
 - **Écran secondaire** : calendrier (jour/mois), extensible vers des données externes
 
 Style : skeuomorphisme inspiré Dieter Rams / Braun — fonctionnel, épuré, sans ornement superflu.
@@ -49,26 +49,28 @@ Dans ce cas Windows le retire de `EnumDisplayMonitors` → l'app passe en **mode
 
 ---
 
-## Structure de fichiers (état actuel)
+## Structure de fichiers
 
 ```
 screen_saver/
 ├── plan.md
 ├── CLAUDE.md
+├── setup-autostart.ps1              ← Task Scheduler registration (-Remove pour désinstaller)
 ├── ScreenSaver.sln
 └── ScreenSaver/
     ├── App.xaml / App.xaml.cs
     ├── AppController.cs
-    ├── config.json                      ← CopyToOutputDirectory=PreserveNewest
-    ├── app.manifest                     ← PerMonitorV2 DPI awareness
+    ├── config.json                  ← CopyToOutputDirectory=PreserveNewest
+    ├── app.manifest                 ← PerMonitorV2 DPI awareness
     ├── Native/
-    │   └── Win32.cs                     ← toutes les déclarations P/Invoke
+    │   └── Win32.cs                 ← toutes les déclarations P/Invoke
     ├── Core/
     │   ├── MonitorManager.cs
     │   ├── IdleWatcher.cs
     │   ├── MediaInhibitor.cs
     │   ├── ThemeService.cs
-    │   └── ConfigService.cs
+    │   ├── ConfigService.cs
+    │   └── GrainHelper.cs           ← WriteableBitmap bruit → ImageBrush grain film
     ├── Models/
     │   ├── MonitorInfo.cs
     │   ├── MonitorTopology.cs
@@ -106,16 +108,22 @@ screen_saver/
 - [x] Grace period 600 ms pour MouseMove synthétique WPF
 - [x] WM_DISPLAYCHANGE : reconstruction uniquement si topologie réellement changée
 
-### Phase 2 — Polish visuel 🔜 PROCHAINE ÉTAPE
+### Phase 2 — Polish visuel ✅ TERMINÉE
 
-- [ ] **Filigrane numérique** : `HH:mm:ss` dessiné sur le Canvas derrière le cadran, opacité ~12 % (config : `show_digital_watermark`, `watermark_opacity`)
-- [ ] **Aiguille secondes fluide** : interpolation continue via `DateTime.Now.Millisecond` — passer de 100 ms discret à rotation sub-frame lisse
-- [ ] **DPI canvas** : vérifier que le canvas 500×500 dans son Viewbox scale correctement sur le 2K (text rendering, StrokeThickness)
-- [ ] **Finition thème sombre** : proportions Braun, espacement typographique calendrier, hiérarchie visuelle
-- [ ] **Finition thème clair** : cohérence palette, HandBrush adapté (dark on light face)
-- [ ] **Démarrage auto** : script PowerShell de setup du Planificateur de tâches
+- [x] **Filigrane numérique HH:mm** : `OverlayCanvas` hors Viewbox → rendu ClearType natif (4 TextBlocks en 2×2 grid, `ClockWhiteBrush`)
+- [x] **Aiguille secondes fluide** : rotation continue via `now.Millisecond / 1000.0` dans `totalSeconds`
+- [x] **Marqueurs neumorphiques** : emboss highlight/shadow (deux lignes offset+blur) + surface `BackgroundBrush`
+  - Gros marqueurs : contour `ClockWhiteBrush` + fill fond
+  - Petits marqueurs : fill fond uniquement
+- [x] **Aiguilles avec contour plastique** : `HandOutline` (noir α55) + `DropShadowEffect` ajusté par aiguille
+  - Heures : 12×110, blur14 op0.62 — Minutes : 8×155, blur14 op0.62 — Secondes : 3×227, blur10 op0.80
+- [x] **Dot central soudé** : `secCover` Rectangle (AccentBrush, sans stroke) au-dessus du dot → démarcation invisible
+- [x] **Grain film** : `GrainHelper` génère `WriteableBitmap` BGRA bruit tuilé (opacité 0.015) sur les deux fenêtres
+- [x] **Tokens couleurs** : `ClockWhiteBrush` dédié horloge (#BAB7B0 dark / #383533 light), `AccentColor` #BF4E16, fond dark #1A1918
+- [x] **Calendrier** : week-ends `MutedBrush`, `TextFormattingMode=Display` sur grands TextBlocks
+- [x] **Script démarrage auto** : `setup-autostart.ps1` (Task Scheduler, trigger logon, -Remove pour désinstaller)
 
-### Phase 3 — Données externes calendrier
+### Phase 3 — Données externes calendrier 🔜
 
 - [ ] Interface `ICalendarDataProvider`
 - [ ] Provider journées internationales (API publique)
@@ -134,18 +142,19 @@ screen_saver/
 
 ### Principes
 - **Moins, mais mieux** : chaque élément visible doit avoir une fonction
-- Pas de dégradés décoratifs, pas d'ombres portées inutiles
+- Skeuomorphisme subtil : ombres douces, reliefs neumorphiques, grain film — jamais tape-à-l'œil
 
-### Palette — Thème sombre (implémenté)
+### Palette — Thème sombre
 
 | Token / Clé WPF | Hex | Usage |
 |---|---|---|
-| `BackgroundBrush` | `#1C1C1A` | Fond des fenêtres |
+| `BackgroundBrush` | `#1A1918` | Fond des fenêtres |
 | `FaceBrush` | `#252523` | Cadran horloge (sombre, légèrement plus clair que le fond) |
 | `TextPrimaryBrush` | `#F0EDE4` | Graduations longues, labels — off-white sur fond sombre |
 | `TextOnDarkBrush` | `#F0EDE4` | Textes calendrier (numéro du jour) |
 | `HandBrush` | `#F0EDE4` | Aiguilles heures et minutes |
-| `AccentBrush` | `#E85D00` | Aiguille secondes, dot central, highlights |
+| `ClockWhiteBrush` | `#BAB7B0` | Blanc cassé dédié horloge (découplé du calendrier) |
+| `AccentBrush` | `#BF4E16` | Aiguille secondes, dot central — orange rouge-brun |
 | `MutedBrush` | `#9E9B94` | Graduations courtes, textes secondaires calendrier |
 
 ### Palette — Thème clair
@@ -157,53 +166,24 @@ screen_saver/
 | `TextPrimaryBrush` | `#1C1C1A` | Graduations longues, labels sombres sur cadran clair |
 | `TextOnDarkBrush` | `#1C1C1A` | Textes calendrier |
 | `HandBrush` | `#1C1C1A` | Aiguilles heures et minutes |
-| `AccentBrush` | `#E85D00` | Aiguille secondes |
+| `ClockWhiteBrush` | `#383533` | Sombre cassé dédié horloge |
+| `AccentBrush` | `#BF4E16` | Aiguille secondes |
 | `MutedBrush` | `#B0ADA6` | Graduations courtes, textes secondaires |
 
 ### Typographie
-- Titres / chiffres dominants : **Helvetica Neue** (fallback : Segoe UI Light)
-- Corps / grille : Segoe UI Light
-- Pas de serif, pas de gras sauf intention forte
+- Filigrane horloge : Helvetica Neue (fallback : Segoe UI), Normal weight
+- Calendrier chiffres : Segoe UI Light
+- Pas de serif
 
-### Horloge — détails visuels (Canvas 500×500 logical units, scalé par Viewbox)
+### Horloge — constantes visuelles (Canvas 500×500)
 
 | Élément | Constante | Valeur |
 |---|---|---|
 | Rayon cadran | `FaceR` | 228 |
-| Largeur aiguille heures | `HourHandW/H` | 9 × 135 |
-| Largeur aiguille minutes | `MinHandW/H` | 6 × 185 |
-| Largeur aiguille secondes | `SecHandW/H` | 3 × 210 |
-| Dot central | `CenterDotR` | 6 |
-| Graduations longues (×12) | — | traits 22 px, épaisseur 2.5 |
-| Graduations courtes (×48) | — | traits 10 px, épaisseur 1.2 |
-
----
-
-## Points d'attention pour la Phase 2
-
-### Filigrane numérique
-- Doit être dessiné **sur le Canvas**, derrière les aiguilles (insérer avant `BuildHands()`)
-- `TextBlock` avec `Opacity = config.WatermarkOpacity` (lu depuis `App.Current.Config.Clock`)
-- Centré sur `(Cx, Cy)`, grande police (ex. 80–100 px logiques sur le canvas 500×500)
-- Clé de couleur : `TextPrimaryBrush` avec opacité override, ou couleur dédiée
-- Se mettre à jour dans `UpdateHandAngles()` avec `DateTime.Now.ToString("HH:mm:ss")`
-
-### Aiguille secondes fluide
-Dans `UpdateHandAngles()` :
-```csharp
-// Avant (discret — sauts à chaque tick 100 ms)
-_secTransform!.Angle = (totalSeconds % 60) / 60.0 * 360.0;
-
-// Après (continu — inclut les millisecondes)
-double totalSecondsWithMs = now.Hour * 3600 + now.Minute * 60 + now.Second + now.Millisecond / 1000.0;
-_secTransform!.Angle = (totalSecondsWithMs % 60) / 60.0 * 360.0;
-```
-Note : `totalSeconds` inclut déjà `Millisecond / 1000.0` — vérifier qu'il est utilisé pour toutes les aiguilles.
-
-### DPI Canvas
-Le `Canvas` est dans un `Viewbox` — le scaling est automatique. Vérifier sur 2K :
-- `StrokeThickness` des ticks : valeurs logiques, pas physiques → OK
-- Text rendering dans le filigrane : `TextOptions.TextFormattingMode="Display"` si flou
+| Aiguille heures | `HourHandW/H` | 12 × 110 |
+| Aiguille minutes | `MinHandW/H` | 8 × 155 |
+| Aiguille secondes | `SecHandW/H` | 3 × 227 |
+| Dot central | `CenterDotR` | 14 |
 
 ---
 
