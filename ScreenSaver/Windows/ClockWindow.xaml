@@ -9,5 +9,8 @@
         AllowsTransparency="False"
         Cursor="None"
         Background="{DynamicResource BackgroundBrush}">
-    <controls:AnalogClock/>
+    <Grid>
+        <controls:AnalogClock/>
+        <Rectangle x:Name="GrainOverlay" IsHitTestVisible="False"/>
+    </Grid>
 </Window>

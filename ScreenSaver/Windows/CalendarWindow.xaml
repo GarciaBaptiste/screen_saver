@@ -9,5 +9,8 @@
         AllowsTransparency="False"
         Cursor="None"
         Background="{DynamicResource BackgroundBrush}">
-    <controls:CalendarView x:Name="CalView"/>
+    <Grid>
+        <controls:CalendarView x:Name="CalView"/>
+        <Rectangle x:Name="GrainOverlay" IsHitTestVisible="False"/>
+    </Grid>
 </Window>

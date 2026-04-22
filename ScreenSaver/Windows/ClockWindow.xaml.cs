@@ -1,3 +1,4 @@
+using ScreenSaver.Core;
 using ScreenSaver.Native;
 using System.Windows;
 using System.Windows.Input;
@@ -16,6 +17,7 @@ public partial class ClockWindow : Window
         InitializeComponent();
         _onMouseMove = onMouseMove;
         _onInput     = onInput;
+        GrainOverlay.Fill = GrainHelper.CreateBrush();
         SourceInitialized += OnSourceInitialized;
     }
 
