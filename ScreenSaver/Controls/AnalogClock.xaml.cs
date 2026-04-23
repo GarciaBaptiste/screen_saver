@@ -29,7 +29,6 @@ public partial class AnalogClock : UserControl
     private readonly List<(Line outline, Line fill)> _hourMarkPairs = new();
     private readonly List<Line> _embossLines   = new();
     private readonly List<Line> _minorSurfaces = new();
-    private Rectangle? _hourHandRect, _minHandRect;
 
     public AnalogClock()
     {
@@ -163,7 +162,8 @@ public partial class AnalogClock : UserControl
                 FontWeight = FontWeights.Normal,
                 TextAlignment = TextAlignment.Center,
                 IsHitTestVisible = false,
-                UseLayoutRounding = true
+                UseLayoutRounding = true,
+                Opacity = 0   // hidden until phase 2
             };
             TextOptions.SetTextFormattingMode(tb, TextFormattingMode.Display);
             TextOptions.SetTextRenderingMode(tb, TextRenderingMode.ClearType);
@@ -204,19 +204,19 @@ public partial class AnalogClock : UserControl
 
     private void BuildHands()
     {
-        // Hour hand — visible from step 1 (fade-in)
+        // Hour hand — visible from phase 1
         _hourTransform = new RotateTransform(0, HourHandW / 2, HourHandH);
-        _hourHandRect  = MakeHand(HourHandW, HourHandH, "ClockWhiteBrush", _hourTransform);
-        Canvas.SetLeft(_hourHandRect, Cx - HourHandW / 2);
-        Canvas.SetTop(_hourHandRect, Cy - HourHandH);
-        ClockCanvas.Children.Add(_hourHandRect);
+        var hourHand = MakeHand(HourHandW, HourHandH, "ClockWhiteBrush", _hourTransform);
+        Canvas.SetLeft(hourHand, Cx - HourHandW / 2);
+        Canvas.SetTop(hourHand, Cy - HourHandH);
+        ClockCanvas.Children.Add(hourHand);
 
-        // Minute hand — visible from step 1 (fade-in)
+        // Minute hand — visible from phase 1
         _minTransform = new RotateTransform(0, MinHandW / 2, MinHandH);
-        _minHandRect  = MakeHand(MinHandW, MinHandH, "ClockWhiteBrush", _minTransform);
-        Canvas.SetLeft(_minHandRect, Cx - MinHandW / 2);
-        Canvas.SetTop(_minHandRect, Cy - MinHandH);
-        ClockCanvas.Children.Add(_minHandRect);
+        var minHand = MakeHand(MinHandW, MinHandH, "ClockWhiteBrush", _minTransform);
+        Canvas.SetLeft(minHand, Cx - MinHandW / 2);
+        Canvas.SetTop(minHand, Cy - MinHandH);
+        ClockCanvas.Children.Add(minHand);
 
         // Seconds hand — visible from the very beginning (step 1)
         _secTransform = new RotateTransform(0, SecHandW / 2, SecHandH);
@@ -282,28 +282,26 @@ public partial class AnalogClock : UserControl
 
     // ── Reveal sequence (called by ClockWindow after window fade-in) ──────────
     //
-    //  Step 1 — window opacity 0→1 (ClockWindow): background + watermark + all hands
-    //  Step 2 — hour markers appear clockwise, one by one, instant snap, 140 ms apart
-    //  Step 3 — emboss lines + minor surfaces fade in together (500 ms)
+    //  Phase 1 — window opacity 0→1 (ClockWindow): background + all 3 hands only
+    //  Phase 2 — markers (hour + minor + emboss) + watermark all fade in together (800 ms)
 
-    public async void StartReveal()
+    public void StartReveal()
     {
-        // Step 2 — hour markers clockwise
-        foreach (var (outline, fill) in _hourMarkPairs)
-        {
-            outline.Opacity = 1;
-            fill.Opacity    = 1;
-            await Task.Delay(70);
-        }
-
-        // Step 3 — emboss + minor surfaces
-        var fadeAnim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(500))
+        var fadeAnim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800))
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
         fadeAnim.Freeze();
-        foreach (UIElement el in _embossLines.Cast<UIElement>().Concat(_minorSurfaces))
+
+        // All tick elements
+        foreach (UIElement el in _embossLines.Cast<UIElement>()
+            .Concat(_minorSurfaces)
+            .Concat(_hourMarkPairs.SelectMany(p => new UIElement[] { p.outline, p.fill })))
             el.BeginAnimation(OpacityProperty, fadeAnim);
+
+        // Watermark digits
+        foreach (var tb in _wmDigits)
+            tb?.BeginAnimation(OpacityProperty, fadeAnim);
     }
 
     // ── Angle update ──────────────────────────────────────────────────────────
