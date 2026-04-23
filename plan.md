@@ -122,6 +122,11 @@ screen_saver/
 - [x] **Tokens couleurs** : `ClockWhiteBrush` dédié horloge (#BAB7B0 dark / #383533 light), `AccentColor` #BF4E16, fond dark #1A1918
 - [x] **Calendrier** : week-ends `MutedBrush`, `TextFormattingMode=Display` sur grands TextBlocks
 - [x] **Script démarrage auto** : `setup-autostart.ps1` (Task Scheduler, trigger logon, -Remove pour désinstaller)
+- [x] **Animation d'entrée** : `AllowsTransparency=True` sur les deux fenêtres
+  - Phase 1 (700 ms) : aiguilles sur fond transparent, bureau visible en dessous
+  - Phase 2 (800 ms) : fond + grain fade-in simultané sur les deux écrans
+  - Post-fond horloge : marqueurs + filigrane fade-in ensemble
+  - Post-fond calendrier : sections en cascade (stagger 220 ms, fade 600 ms chacune)
 
 ### Phase 3 — Données externes calendrier 🔜
 
