@@ -57,7 +57,7 @@ public partial class CalendarView : UserControl
         {
             var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(600))
             {
-                BeginTime      = TimeSpan.FromMilliseconds(500 + i * 220),
+                BeginTime      = TimeSpan.FromMilliseconds(i * 220),
                 EasingFunction = ease
             };
             sections[i].BeginAnimation(OpacityProperty, anim);

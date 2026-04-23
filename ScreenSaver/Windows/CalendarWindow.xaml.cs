@@ -43,11 +43,13 @@ public partial class CalendarWindow : Window
         var phase1 = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(700)) { EasingFunction = ease };
         phase1.Completed += (_, _) =>
         {
-            // Phase 2 — fond + grain + sections calendrier en cascade
-            var phase2 = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800)) { EasingFunction = ease };
-            BackgroundRect.BeginAnimation(OpacityProperty, phase2);
-            GrainOverlay.BeginAnimation(OpacityProperty, phase2);
-            CalView.StartReveal();
+            // Phase 2 — fond + grain (même timing que ClockWindow)
+            var bgAnim    = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800)) { EasingFunction = ease };
+            var grainAnim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800)) { EasingFunction = ease };
+            // Contenu calendrier démarre une fois le fond entièrement visible
+            bgAnim.Completed += (_, _) => CalView.StartReveal();
+            BackgroundRect.BeginAnimation(OpacityProperty, bgAnim);
+            GrainOverlay.BeginAnimation(OpacityProperty, grainAnim);
         };
         BeginAnimation(OpacityProperty, phase1);
     }
