@@ -37,7 +37,7 @@ public partial class ClockWindow : Window
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Fade the window in, then trigger the clock reveal sequence
-        var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(1200))
+        var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(700))
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };

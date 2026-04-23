@@ -293,7 +293,7 @@ public partial class AnalogClock : UserControl
         {
             outline.Opacity = 1;
             fill.Opacity    = 1;
-            await Task.Delay(140);
+            await Task.Delay(70);
         }
 
         // Step 3 — emboss + minor surfaces
