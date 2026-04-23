@@ -204,18 +204,16 @@ public partial class AnalogClock : UserControl
 
     private void BuildHands()
     {
-        // Hour hand — hidden until step 4 of reveal
+        // Hour hand — visible from step 1 (fade-in)
         _hourTransform = new RotateTransform(0, HourHandW / 2, HourHandH);
         _hourHandRect  = MakeHand(HourHandW, HourHandH, "ClockWhiteBrush", _hourTransform);
-        _hourHandRect.Opacity = 0;
         Canvas.SetLeft(_hourHandRect, Cx - HourHandW / 2);
         Canvas.SetTop(_hourHandRect, Cy - HourHandH);
         ClockCanvas.Children.Add(_hourHandRect);
 
-        // Minute hand — hidden until step 5 of reveal
+        // Minute hand — visible from step 1 (fade-in)
         _minTransform = new RotateTransform(0, MinHandW / 2, MinHandH);
         _minHandRect  = MakeHand(MinHandW, MinHandH, "ClockWhiteBrush", _minTransform);
-        _minHandRect.Opacity = 0;
         Canvas.SetLeft(_minHandRect, Cx - MinHandW / 2);
         Canvas.SetTop(_minHandRect, Cy - MinHandH);
         ClockCanvas.Children.Add(_minHandRect);
@@ -284,11 +282,9 @@ public partial class AnalogClock : UserControl
 
     // ── Reveal sequence (called by ClockWindow after window fade-in) ──────────
     //
-    //  Step 1 — window opacity 0→1 (ClockWindow): background + watermark + seconds hand
+    //  Step 1 — window opacity 0→1 (ClockWindow): background + watermark + all hands
     //  Step 2 — hour markers appear clockwise, one by one, instant snap, 140 ms apart
     //  Step 3 — emboss lines + minor surfaces fade in together (500 ms)
-    //  Step 4 — hour hand snaps in
-    //  Step 5 — minute hand snaps in, 350 ms after hour hand
 
     public async void StartReveal()
     {
@@ -308,14 +304,6 @@ public partial class AnalogClock : UserControl
         fadeAnim.Freeze();
         foreach (UIElement el in _embossLines.Cast<UIElement>().Concat(_minorSurfaces))
             el.BeginAnimation(OpacityProperty, fadeAnim);
-        await Task.Delay(600);
-
-        // Step 4 — hour hand
-        _hourHandRect!.Opacity = 1;
-        await Task.Delay(350);
-
-        // Step 5 — minute hand
-        _minHandRect!.Opacity = 1;
     }
 
     // ── Angle update ──────────────────────────────────────────────────────────
