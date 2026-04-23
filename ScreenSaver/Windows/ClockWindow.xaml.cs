@@ -36,13 +36,18 @@ public partial class ClockWindow : Window
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // Fade the window in, then trigger the clock reveal sequence
-        var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(700))
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+        // Phase 1 — aiguilles sur fond transparent
+        var phase1 = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(700)) { EasingFunction = ease };
+        phase1.Completed += (_, _) =>
         {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            // Phase 2 — fond plein écran + marqueurs + cadran numérique
+            var phase2 = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800)) { EasingFunction = ease };
+            BackgroundRect.BeginAnimation(OpacityProperty, phase2);
+            ClockControl.StartReveal();
         };
-        anim.Completed += (_, _) => ClockControl.StartReveal();
-        BeginAnimation(OpacityProperty, anim);
+        BeginAnimation(OpacityProperty, phase1);
     }
 
     protected override void OnMouseMove (MouseEventArgs       e) { base.OnMouseMove(e);  _onMouseMove(); }
