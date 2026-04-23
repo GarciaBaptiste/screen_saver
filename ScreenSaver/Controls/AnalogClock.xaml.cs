@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -22,6 +23,13 @@ public partial class AnalogClock : UserControl
     private static readonly int[] WmCol = [0, 1, 0, 1]; // column per digit
     private static readonly int[] WmRow = [0, 0, 1, 1]; // row per digit
     private readonly DispatcherTimer _timer;
+
+    // ── Reveal animation element groups ──────────────────────────────────────
+    // _hourMarkPairs : 12 entries in clockwise order (12h first)
+    private readonly List<(Line outline, Line fill)> _hourMarkPairs = new();
+    private readonly List<Line> _embossLines   = new();
+    private readonly List<Line> _minorSurfaces = new();
+    private Rectangle? _hourHandRect, _minHandRect;
 
     public AnalogClock()
     {
@@ -65,18 +73,24 @@ public partial class AnalogClock : UserControl
             double x2 = Cx + outerR * Math.Sin(angleRad);
             double y2 = Cy - outerR * Math.Cos(angleRad);
 
-            AddTickLine(x1 - off, y1 - off, x2 - off, y2 - off, strokeW, TickHighlight, isHour ? 6.0 : 4.0);
-            AddTickLine(x1 + off, y1 + off, x2 + off, y2 + off, strokeW, TickShadow,    isHour ? 8.0 : 5.5);
+            // Emboss lines — hidden until step 3 of reveal
+            var hl = AddTickLine(x1 - off, y1 - off, x2 - off, y2 - off, strokeW, TickHighlight, isHour ? 6.0 : 4.0);
+            var sh = AddTickLine(x1 + off, y1 + off, x2 + off, y2 + off, strokeW, TickShadow,    isHour ? 8.0 : 5.5);
+            hl.Opacity = 0;
+            sh.Opacity = 0;
+            _embossLines.Add(hl);
+            _embossLines.Add(sh);
 
             if (isHour)
             {
-                // Gros marqueurs : contour blanc + remplissage fond
+                // Gros marqueurs : contour blanc + remplissage fond — hidden until step 2 of reveal
                 var outline = new Line
                 {
                     X1 = x1, Y1 = y1, X2 = x2, Y2 = y2,
                     StrokeThickness = strokeW,
                     StrokeStartLineCap = PenLineCap.Round,
-                    StrokeEndLineCap = PenLineCap.Round
+                    StrokeEndLineCap = PenLineCap.Round,
+                    Opacity = 0
                 };
                 outline.SetResourceReference(Shape.StrokeProperty, "ClockWhiteBrush");
                 ClockCanvas.Children.Add(outline);
@@ -86,30 +100,36 @@ public partial class AnalogClock : UserControl
                     X1 = x1, Y1 = y1, X2 = x2, Y2 = y2,
                     StrokeThickness = strokeW - 1.4,
                     StrokeStartLineCap = PenLineCap.Round,
-                    StrokeEndLineCap = PenLineCap.Round
+                    StrokeEndLineCap = PenLineCap.Round,
+                    Opacity = 0
                 };
                 fill.SetResourceReference(Shape.StrokeProperty, "BackgroundBrush");
                 ClockCanvas.Children.Add(fill);
+
+                // Loop goes 0, 5, 10, …, 55 → 12h, 1h, 2h, …, 11h — clockwise order ✓
+                _hourMarkPairs.Add((outline, fill));
             }
             else
             {
-                // Petits marqueurs : surface fond pour masquer le centre, seules les franges emboss restent
+                // Petits marqueurs : surface fond — hidden until step 3 of reveal
                 var surface = new Line
                 {
                     X1 = x1, Y1 = y1, X2 = x2, Y2 = y2,
                     StrokeThickness = strokeW,
                     StrokeStartLineCap = PenLineCap.Round,
-                    StrokeEndLineCap = PenLineCap.Round
+                    StrokeEndLineCap = PenLineCap.Round,
+                    Opacity = 0
                 };
                 surface.SetResourceReference(Shape.StrokeProperty, "BackgroundBrush");
                 ClockCanvas.Children.Add(surface);
+                _minorSurfaces.Add(surface);
             }
         }
     }
 
-    private void AddTickLine(double x1, double y1, double x2, double y2, double strokeW, Brush brush, double blurRadius)
+    private Line AddTickLine(double x1, double y1, double x2, double y2, double strokeW, Brush brush, double blurRadius)
     {
-        ClockCanvas.Children.Add(new Line
+        var line = new Line
         {
             X1 = x1, Y1 = y1, X2 = x2, Y2 = y2,
             Stroke = brush,
@@ -117,14 +137,15 @@ public partial class AnalogClock : UserControl
             StrokeStartLineCap = PenLineCap.Round,
             StrokeEndLineCap = PenLineCap.Round,
             Effect = new BlurEffect { Radius = blurRadius, KernelType = KernelType.Gaussian }
-        });
+        };
+        ClockCanvas.Children.Add(line);
+        return line;
     }
 
-    // ── Digital watermark: [H1][H2][ ][M1][M2][ ][S1][S2] ───────────────────
+    // ── Digital watermark: [H1][H2][ ][M1][M2] ───────────────────────────────
     // Rendered on OverlayCanvas (outside Viewbox) so text rasterises at native
     // screen resolution — no Viewbox stretch, no blurriness.
 
-    // Logical coords in the 500-unit canvas space (used to compute screen px)
     private const double WmCellWL = 14, WmFontSizeL = 18, WmRowHL = 22;
     private const double WmY0L = 90;                              // below 12 o'clock tick
     private const double WmX0L = Cx - WmCellWL;                  // 236 — centres 2 cells
@@ -183,25 +204,30 @@ public partial class AnalogClock : UserControl
 
     private void BuildHands()
     {
+        // Hour hand — hidden until step 4 of reveal
         _hourTransform = new RotateTransform(0, HourHandW / 2, HourHandH);
-        var hourHand = MakeHand(HourHandW, HourHandH, "ClockWhiteBrush", _hourTransform);
-        Canvas.SetLeft(hourHand, Cx - HourHandW / 2);
-        Canvas.SetTop(hourHand, Cy - HourHandH);
-        ClockCanvas.Children.Add(hourHand);
+        _hourHandRect  = MakeHand(HourHandW, HourHandH, "ClockWhiteBrush", _hourTransform);
+        _hourHandRect.Opacity = 0;
+        Canvas.SetLeft(_hourHandRect, Cx - HourHandW / 2);
+        Canvas.SetTop(_hourHandRect, Cy - HourHandH);
+        ClockCanvas.Children.Add(_hourHandRect);
 
+        // Minute hand — hidden until step 5 of reveal
         _minTransform = new RotateTransform(0, MinHandW / 2, MinHandH);
-        var minHand = MakeHand(MinHandW, MinHandH, "ClockWhiteBrush", _minTransform);
-        Canvas.SetLeft(minHand, Cx - MinHandW / 2);
-        Canvas.SetTop(minHand, Cy - MinHandH);
-        ClockCanvas.Children.Add(minHand);
+        _minHandRect  = MakeHand(MinHandW, MinHandH, "ClockWhiteBrush", _minTransform);
+        _minHandRect.Opacity = 0;
+        Canvas.SetLeft(_minHandRect, Cx - MinHandW / 2);
+        Canvas.SetTop(_minHandRect, Cy - MinHandH);
+        ClockCanvas.Children.Add(_minHandRect);
 
+        // Seconds hand — visible from the very beginning (step 1)
         _secTransform = new RotateTransform(0, SecHandW / 2, SecHandH);
         var secHand = MakeHand(SecHandW, SecHandH, "AccentBrush", _secTransform, shadowOpacity: 0.80, shadowBlur: 10);
         Canvas.SetLeft(secHand, Cx - SecHandW / 2);
         Canvas.SetTop(secHand, Cy - SecHandH);
         ClockCanvas.Children.Add(secHand);
 
-        // Center dot
+        // Center dot — visible from the beginning (part of seconds assembly)
         var dot = new Ellipse
         {
             Width = CenterDotR * 2, Height = CenterDotR * 2,
@@ -254,6 +280,42 @@ public partial class AnalogClock : UserControl
         };
         rect.SetResourceReference(Shape.FillProperty, brushKey);
         return rect;
+    }
+
+    // ── Reveal sequence (called by ClockWindow after window fade-in) ──────────
+    //
+    //  Step 1 — window opacity 0→1 (ClockWindow): background + watermark + seconds hand
+    //  Step 2 — hour markers appear clockwise, one by one, instant snap, 140 ms apart
+    //  Step 3 — emboss lines + minor surfaces fade in together (500 ms)
+    //  Step 4 — hour hand snaps in
+    //  Step 5 — minute hand snaps in, 350 ms after hour hand
+
+    public async void StartReveal()
+    {
+        // Step 2 — hour markers clockwise
+        foreach (var (outline, fill) in _hourMarkPairs)
+        {
+            outline.Opacity = 1;
+            fill.Opacity    = 1;
+            await Task.Delay(140);
+        }
+
+        // Step 3 — emboss + minor surfaces
+        var fadeAnim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(500))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        fadeAnim.Freeze();
+        foreach (UIElement el in _embossLines.Cast<UIElement>().Concat(_minorSurfaces))
+            el.BeginAnimation(OpacityProperty, fadeAnim);
+        await Task.Delay(600);
+
+        // Step 4 — hour hand
+        _hourHandRect!.Opacity = 1;
+        await Task.Delay(350);
+
+        // Step 5 — minute hand
+        _minHandRect!.Opacity = 1;
     }
 
     // ── Angle update ──────────────────────────────────────────────────────────

@@ -10,7 +10,7 @@
         Cursor="None"
         Background="{DynamicResource BackgroundBrush}">
     <Grid>
-        <controls:AnalogClock/>
+        <controls:AnalogClock x:Name="ClockControl"/>
         <Rectangle x:Name="GrainOverlay" IsHitTestVisible="False"/>
     </Grid>
 </Window>

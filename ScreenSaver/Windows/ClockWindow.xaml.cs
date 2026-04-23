@@ -3,6 +3,7 @@ using ScreenSaver.Native;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media.Animation;
 
 namespace ScreenSaver.Windows;
 
@@ -18,7 +19,9 @@ public partial class ClockWindow : Window
         _onMouseMove = onMouseMove;
         _onInput     = onInput;
         GrainOverlay.Fill = GrainHelper.CreateBrush();
+        Opacity = 0;
         SourceInitialized += OnSourceInitialized;
+        Loaded += OnLoaded;
     }
 
     public void PositionOnMonitor(System.Drawing.Rectangle physBounds)
@@ -30,6 +33,17 @@ public partial class ClockWindow : Window
 
     private void OnSourceInitialized(object? sender, EventArgs e) =>
         Win32.InitToolWindow(new WindowInteropHelper(this).Handle, _physBounds);
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // Fade the window in, then trigger the clock reveal sequence
+        var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(1200))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        anim.Completed += (_, _) => ClockControl.StartReveal();
+        BeginAnimation(OpacityProperty, anim);
+    }
 
     protected override void OnMouseMove (MouseEventArgs       e) { base.OnMouseMove(e);  _onMouseMove(); }
     protected override void OnMouseDown (MouseButtonEventArgs e) { base.OnMouseDown(e);  _onInput(); }
