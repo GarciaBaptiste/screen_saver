@@ -16,6 +16,7 @@
                        FontSize="28"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,8"
+                       Opacity="0"
                        TextOptions.TextFormattingMode="Display">
                 <TextBlock.Foreground>
                     <DynamicResource ResourceKey="MutedBrush"/>
@@ -29,6 +30,7 @@
                        FontWeight="Light"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,0"
+                       Opacity="0"
                        TextOptions.TextFormattingMode="Display">
                 <TextBlock.Foreground>
                     <DynamicResource ResourceKey="TextOnDarkBrush"/>
@@ -41,6 +43,7 @@
                        FontSize="36"
                        HorizontalAlignment="Center"
                        Margin="0,8,0,40"
+                       Opacity="0"
                        TextOptions.TextFormattingMode="Display">
                 <TextBlock.Foreground>
                     <DynamicResource ResourceKey="MutedBrush"/>
@@ -48,7 +51,7 @@
             </TextBlock>
 
             <!-- Month grid -->
-            <Grid x:Name="MonthGrid" HorizontalAlignment="Center"/>
+            <Grid x:Name="MonthGrid" HorizontalAlignment="Center" Opacity="0"/>
         </StackPanel>
 
         <!-- ── Compact landscape layout (single-monitor — half screen) ──────── -->
@@ -60,7 +63,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Left: text info -->
-            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+            <StackPanel x:Name="LandscapeTextPanel" Grid.Column="0" VerticalAlignment="Center" Opacity="0">
                 <TextBlock x:Name="DayOfWeekTextL"
                            FontFamily="Segoe UI Light"
                            FontSize="20"
@@ -89,7 +92,7 @@
             </StackPanel>
 
             <!-- Right: month grid -->
-            <Grid x:Name="MonthGridL" Grid.Column="2" VerticalAlignment="Center"/>
+            <Grid x:Name="MonthGridL" Grid.Column="2" VerticalAlignment="Center" Opacity="0"/>
         </Grid>
 
     </Grid>

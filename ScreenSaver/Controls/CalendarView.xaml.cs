@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using ScreenSaver;
 
 namespace ScreenSaver.Controls;
@@ -40,6 +41,27 @@ public partial class CalendarView : UserControl
         ApplyLayout();
         Refresh();
         _timer.Start();
+    }
+
+    // ── Reveal sequence ───────────────────────────────────────────────────────
+    // Each section fades in over 600 ms, staggered by 220 ms (overlapping).
+
+    public void StartReveal()
+    {
+        UIElement[] sections = _isCompact
+            ? [LandscapeTextPanel, MonthGridL]
+            : [DayOfWeekText, DayNumberText, MonthYearText, MonthGrid];
+
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        for (int i = 0; i < sections.Length; i++)
+        {
+            var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(600))
+            {
+                BeginTime     = TimeSpan.FromMilliseconds(i * 220),
+                EasingFunction = ease
+            };
+            sections[i].BeginAnimation(OpacityProperty, anim);
+        }
     }
 
     private void ApplyLayout()

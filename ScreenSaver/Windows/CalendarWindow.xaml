@@ -6,11 +6,16 @@
         ResizeMode="NoResize"
         Topmost="True"
         ShowInTaskbar="False"
-        AllowsTransparency="False"
+        AllowsTransparency="True"
         Cursor="None"
-        Background="{DynamicResource BackgroundBrush}">
+        Background="Transparent">
     <Grid>
+        <!-- Phase 2: fond plein écran, démarre invisible -->
+        <Rectangle x:Name="BackgroundRect"
+                   Fill="{DynamicResource BackgroundBrush}"
+                   Opacity="0"
+                   IsHitTestVisible="False"/>
         <controls:CalendarView x:Name="CalView"/>
-        <Rectangle x:Name="GrainOverlay" IsHitTestVisible="False"/>
+        <Rectangle x:Name="GrainOverlay" Opacity="0" IsHitTestVisible="False"/>
     </Grid>
 </Window>
