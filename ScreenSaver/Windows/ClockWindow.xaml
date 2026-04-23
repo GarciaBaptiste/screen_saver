@@ -16,6 +16,6 @@
                    Opacity="0"
                    IsHitTestVisible="False"/>
         <controls:AnalogClock x:Name="ClockControl"/>
-        <Rectangle x:Name="GrainOverlay" IsHitTestVisible="False"/>
+        <Rectangle x:Name="GrainOverlay" Opacity="0" IsHitTestVisible="False"/>
     </Grid>
 </Window>

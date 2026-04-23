@@ -45,6 +45,7 @@ public partial class ClockWindow : Window
             // Phase 2 — fond plein écran + marqueurs + cadran numérique
             var phase2 = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800)) { EasingFunction = ease };
             BackgroundRect.BeginAnimation(OpacityProperty, phase2);
+            GrainOverlay.BeginAnimation(OpacityProperty, phase2);
             ClockControl.StartReveal();
         };
         BeginAnimation(OpacityProperty, phase1);
