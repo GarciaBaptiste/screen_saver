@@ -13,12 +13,11 @@ public partial class CalendarWindow : Window
     private readonly Action _onMouseMove;
     private readonly Action _onInput;
 
-    public CalendarWindow(Action onMouseMove, Action onInput, bool isCompact)
+    public CalendarWindow(Action onMouseMove, Action onInput)
     {
         InitializeComponent();
         _onMouseMove = onMouseMove;
         _onInput     = onInput;
-        CalView.IsCompact = isCompact;
         GrainOverlay.Fill = GrainHelper.CreateBrush();
         Opacity = 0;
         SourceInitialized += OnSourceInitialized;

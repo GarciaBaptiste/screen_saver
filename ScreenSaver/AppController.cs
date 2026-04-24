@@ -122,7 +122,7 @@ public sealed class AppController : IDisposable
         var secondary = _monitors.SecondaryMonitors.FirstOrDefault();
         if (secondary is not null)
         {
-            _calendarWindow = new CalendarWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput, isCompact: false);
+            _calendarWindow = new CalendarWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput);
             _calendarWindow.PositionOnMonitor(secondary.PhysicalBounds);
         }
 
@@ -133,14 +133,15 @@ public sealed class AppController : IDisposable
 
     private void OpenSingle(MonitorInfo primary)
     {
-        var b     = primary.PhysicalBounds;
-        int halfW = b.Width / 2;
+        var b      = primary.PhysicalBounds;
+        int clockW = b.Width * 2 / 3;
+        int calW   = b.Width - clockW;
 
         _clockWindow = new ClockWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput);
-        _clockWindow.PositionOnMonitor(new Rectangle(b.Left, b.Top, halfW, b.Height));
+        _clockWindow.PositionOnMonitor(new Rectangle(b.Left, b.Top, clockW, b.Height));
 
-        _calendarWindow = new CalendarWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput, isCompact: true);
-        _calendarWindow.PositionOnMonitor(new Rectangle(b.Left + halfW, b.Top, halfW, b.Height));
+        _calendarWindow = new CalendarWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput);
+        _calendarWindow.PositionOnMonitor(new Rectangle(b.Left + clockW, b.Top, calW, b.Height));
 
         ScheduleEntrance();
         _clockWindow.Show();

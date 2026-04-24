@@ -15,7 +15,7 @@
                        FontFamily="Segoe UI Light"
                        FontSize="28"
                        HorizontalAlignment="Center"
-                       Margin="0,0,0,8"
+                       Margin="0,0,0,-32"
                        Opacity="0"
                        TextOptions.TextFormattingMode="Display">
                 <TextBlock.Foreground>
@@ -42,7 +42,7 @@
                        FontFamily="Segoe UI Light"
                        FontSize="36"
                        HorizontalAlignment="Center"
-                       Margin="0,8,0,40"
+                       Margin="0,8,0,64"
                        Opacity="0"
                        TextOptions.TextFormattingMode="Display">
                 <TextBlock.Foreground>
@@ -53,47 +53,6 @@
             <!-- Month grid -->
             <Grid x:Name="MonthGrid" HorizontalAlignment="Center" Opacity="0"/>
         </StackPanel>
-
-        <!-- ── Compact landscape layout (single-monitor — half screen) ──────── -->
-        <Grid x:Name="LandscapePanel" Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="40"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Left: text info -->
-            <StackPanel x:Name="LandscapeTextPanel" Grid.Column="0" VerticalAlignment="Center" Opacity="0">
-                <TextBlock x:Name="DayOfWeekTextL"
-                           FontFamily="Segoe UI Light"
-                           FontSize="20"
-                           Margin="0,0,0,8">
-                    <TextBlock.Foreground>
-                        <DynamicResource ResourceKey="MutedBrush"/>
-                    </TextBlock.Foreground>
-                </TextBlock>
-                <TextBlock x:Name="DayNumberTextL"
-                           FontFamily="Helvetica Neue, Segoe UI Light"
-                           FontSize="160"
-                           FontWeight="Light"
-                           Margin="0,0,0,0">
-                    <TextBlock.Foreground>
-                        <DynamicResource ResourceKey="TextOnDarkBrush"/>
-                    </TextBlock.Foreground>
-                </TextBlock>
-                <TextBlock x:Name="MonthYearTextL"
-                           FontFamily="Segoe UI Light"
-                           FontSize="22"
-                           Margin="0,8,0,0">
-                    <TextBlock.Foreground>
-                        <DynamicResource ResourceKey="MutedBrush"/>
-                    </TextBlock.Foreground>
-                </TextBlock>
-            </StackPanel>
-
-            <!-- Right: month grid -->
-            <Grid x:Name="MonthGridL" Grid.Column="2" VerticalAlignment="Center" Opacity="0"/>
-        </Grid>
 
     </Grid>
 </UserControl>

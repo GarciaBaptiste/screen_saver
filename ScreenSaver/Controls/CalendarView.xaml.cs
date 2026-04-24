@@ -8,7 +8,6 @@ namespace ScreenSaver.Controls;
 
 public partial class CalendarView : UserControl
 {
-    private bool _isCompact;
     private readonly System.Windows.Threading.DispatcherTimer _timer;
 
     public CalendarView()
@@ -23,22 +22,8 @@ public partial class CalendarView : UserControl
         Unloaded += (_, _) => _timer.Stop();
     }
 
-    /// <summary>
-    /// Switch between portrait (full secondary screen) and compact landscape (half primary screen).
-    /// </summary>
-    public bool IsCompact
-    {
-        get => _isCompact;
-        set
-        {
-            _isCompact = value;
-            ApplyLayout();
-        }
-    }
-
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        ApplyLayout();
         Refresh();
         _timer.Start();
     }
@@ -48,9 +33,7 @@ public partial class CalendarView : UserControl
 
     public void StartReveal()
     {
-        UIElement[] sections = _isCompact
-            ? [LandscapeTextPanel, MonthGridL]
-            : [DayOfWeekText, DayNumberText, MonthYearText, MonthGrid];
+        UIElement[] sections = [DayOfWeekText, DayNumberText, MonthYearText, MonthGrid];
 
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
         for (int i = 0; i < sections.Length; i++)
@@ -62,12 +45,6 @@ public partial class CalendarView : UserControl
             };
             sections[i].BeginAnimation(OpacityProperty, anim);
         }
-    }
-
-    private void ApplyLayout()
-    {
-        PortraitPanel.Visibility = _isCompact ? Visibility.Collapsed : Visibility.Visible;
-        LandscapePanel.Visibility = _isCompact ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void Refresh()
@@ -82,27 +59,20 @@ public partial class CalendarView : UserControl
         string dayNumber = today.Day.ToString();
         string monthYear = today.ToString("MMMM yyyy").ToUpperInvariant();
 
-        // Portrait
         DayOfWeekText.Text = dayOfWeek;
         DayNumberText.Text = dayNumber;
         MonthYearText.Text = monthYear;
-        BuildMonthGrid(MonthGrid, today, firstDay, compact: false);
-
-        // Landscape
-        DayOfWeekTextL.Text = dayOfWeek;
-        DayNumberTextL.Text = dayNumber;
-        MonthYearTextL.Text = monthYear;
-        BuildMonthGrid(MonthGridL, today, firstDay, compact: true);
+        BuildMonthGrid(MonthGrid, today, firstDay);
     }
 
-    private void BuildMonthGrid(Grid container, DateTime today, DayOfWeek firstDay, bool compact)
+    private void BuildMonthGrid(Grid container, DateTime today, DayOfWeek firstDay)
     {
         container.Children.Clear();
         container.RowDefinitions.Clear();
         container.ColumnDefinitions.Clear();
 
-        double cellSize = compact ? 28 : 38;
-        double fontSize = compact ? 11 : 14;
+        const double cellSize = 38;
+        const double fontSize = 14;
 
         for (int c = 0; c < 7; c++)
             container.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(cellSize) });
