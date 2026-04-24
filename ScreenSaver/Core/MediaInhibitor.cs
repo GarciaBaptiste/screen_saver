@@ -3,11 +3,21 @@ using Windows.Media.Control;
 namespace ScreenSaver.Core;
 
 /// <summary>
-/// Polls SMTC every 5 s to detect active media playback.
-/// Keeps IdleWatcher from triggering while a browser/media-player is Playing.
+/// Polls SMTC every 5 s to detect active video playback.
+/// Keeps IdleWatcher from triggering while a browser or video player is Playing.
+/// Audio-only apps (Apple Music, Spotify, etc.) are excluded even if they report
+/// PlaybackType.Video for animated album art or canvas.
 /// </summary>
 public sealed class MediaInhibitor : IDisposable
 {
+    // Apps that report PlaybackType.Video even for audio tracks.
+    // Exclude them so they never inhibit the screensaver.
+    private static readonly string[] _audioAppKeywords =
+        ["AppleMusic", "iTunes", "Spotify", "Tidal", "Deezer", "AmazonMusic"];
+
+    private static bool IsKnownAudioApp(string sourceAppId) =>
+        _audioAppKeywords.Any(k => sourceAppId.Contains(k, StringComparison.OrdinalIgnoreCase));
+
     private readonly System.Windows.Threading.DispatcherTimer _timer;
     private GlobalSystemMediaTransportControlsSessionManager? _manager;
 
@@ -45,12 +55,30 @@ public sealed class MediaInhibitor : IDisposable
 
         try
         {
-            // Re-request in case sessions changed (cheap call, cached by OS)
             _manager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-            var sessions = _manager.GetSessions();
-            IsMediaPlaying = sessions.Any(s =>
-                s.GetPlaybackInfo()?.PlaybackStatus ==
-                GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing);
+            var sessions = _manager.GetSessions()
+                .Where(s => s.GetPlaybackInfo()?.PlaybackStatus ==
+                            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                .ToList();
+
+            bool videoPlaying = false;
+            foreach (var session in sessions)
+            {
+                var sourceId = session.SourceAppUserModelId ?? "";
+                if (IsKnownAudioApp(sourceId)) continue;
+
+                try
+                {
+                    var props = await session.TryGetMediaPropertiesAsync();
+                    if (props?.PlaybackType == global::Windows.Media.MediaPlaybackType.Video)
+                    {
+                        videoPlaying = true;
+                        break;
+                    }
+                }
+                catch { /* session may have disappeared */ }
+            }
+            IsMediaPlaying = videoPlaying;
         }
         catch
         {
