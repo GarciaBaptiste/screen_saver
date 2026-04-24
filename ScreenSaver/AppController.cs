@@ -1,4 +1,7 @@
 using System.Drawing;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using ScreenSaver.Core;
 using ScreenSaver.Models;
@@ -28,6 +31,7 @@ public sealed class AppController : IDisposable
 
     private ClockWindow?    _clockWindow;
     private CalendarWindow? _calendarWindow;
+    private Rectangle?      _debugDot;          // DEBUG — retire en production
 
     // WPF fires a synthetic MouseMove when a window appears under the cursor.
     // MouseMove wake is disabled for 600 ms after opening; click/key are always immediate.
@@ -50,6 +54,32 @@ public sealed class AppController : IDisposable
         _monitors.TopologyChanged += OnTopologyChanged;
 
         RegisterHotkey();
+        CreateDebugOverlay();
+    }
+
+    // ── Debug overlay ─────────────────────────────────────────────────────────
+
+    private void CreateDebugOverlay()
+    {
+        _debugDot = new Rectangle { Width = 18, Height = 18, Fill = Brushes.Green };
+
+        var win = new Window
+        {
+            WindowStyle      = WindowStyle.None,
+            ResizeMode       = ResizeMode.NoResize,
+            Topmost          = true,
+            ShowInTaskbar    = false,
+            AllowsTransparency = false,
+            Width  = 18, Height = 18,
+            Left   = 4,  Top    = 4,
+            Content = _debugDot
+        };
+        win.Show();
+
+        // Vert = timer en cours (compte l'inactivité)
+        // Rouge = timer arrêté (économiseur actif, ou remis à zéro)
+        _idle.TimerRunningChanged += (_, isRunning) =>
+            _debugDot.Fill = isRunning ? Brushes.Green : Brushes.Red;
     }
 
     // ── F15 hotkey ────────────────────────────────────────────────────────────

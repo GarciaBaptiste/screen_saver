@@ -18,6 +18,8 @@ public sealed class IdleWatcher : IDisposable
 
     public event EventHandler? IdleStarted;
     public event EventHandler? ActivityResumed;
+    /// <summary>Fired on every Start() / Stop() call. Arg = true if timer is now running.</summary>
+    public event EventHandler<bool>? TimerRunningChanged;
 
     public IdleWatcher(MediaInhibitor media, int thresholdSeconds)
     {
@@ -28,8 +30,8 @@ public sealed class IdleWatcher : IDisposable
         _timer.Tick += OnTick;
     }
 
-    public void Start() => _timer.Start();
-    public void Stop()  => _timer.Stop();
+    public void Start() { _timer.Start(); TimerRunningChanged?.Invoke(this, true);  }
+    public void Stop()  { _timer.Stop();  TimerRunningChanged?.Invoke(this, false); }
 
     private void OnTick(object? sender, EventArgs e)
     {
