@@ -113,15 +113,17 @@ public sealed class AppController : IDisposable
     {
         _clockWindow = new ClockWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput);
         _clockWindow.PositionOnMonitor(primary.PhysicalBounds);
-        _clockWindow.Show();
 
         var secondary = _monitors.SecondaryMonitors.FirstOrDefault();
         if (secondary is not null)
         {
             _calendarWindow = new CalendarWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput, isCompact: false);
             _calendarWindow.PositionOnMonitor(secondary.PhysicalBounds);
-            _calendarWindow.Show();
         }
+
+        ScheduleEntrance();
+        _clockWindow.Show();
+        _calendarWindow?.Show();
     }
 
     private void OpenSingle(MonitorInfo primary)
@@ -131,11 +133,37 @@ public sealed class AppController : IDisposable
 
         _clockWindow = new ClockWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput);
         _clockWindow.PositionOnMonitor(new Rectangle(b.Left, b.Top, halfW, b.Height));
-        _clockWindow.Show();
 
         _calendarWindow = new CalendarWindow(onMouseMove: OnWakeFromMove, onInput: OnWakeFromInput, isCompact: true);
         _calendarWindow.PositionOnMonitor(new Rectangle(b.Left + halfW, b.Top, halfW, b.Height));
+
+        ScheduleEntrance();
+        _clockWindow.Show();
         _calendarWindow.Show();
+    }
+
+    /// <summary>
+    /// Attend que toutes les fenêtres soient chargées (événement Loaded), puis
+    /// déclenche BeginEntrance() sur toutes dans le même appel — garantit que
+    /// les animations de fond démarrent exactement au même moment.
+    /// </summary>
+    private void ScheduleEntrance()
+    {
+        int total  = _calendarWindow is not null ? 2 : 1;
+        int loaded = 0;
+
+        void OnLoaded(object? s, System.Windows.RoutedEventArgs e)
+        {
+            if (++loaded < total) return;
+            // Les deux fenêtres sont prêtes : on démarre les deux animations
+            // dans le même appel pour une synchronisation au tick près.
+            _clockWindow!.BeginEntrance();
+            _calendarWindow?.BeginEntrance();
+        }
+
+        _clockWindow!.Loaded    += OnLoaded;
+        if (_calendarWindow is not null)
+            _calendarWindow.Loaded += OnLoaded;
     }
 
     // ── Close ─────────────────────────────────────────────────────────────────

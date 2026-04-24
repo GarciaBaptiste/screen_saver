@@ -21,7 +21,6 @@ public partial class ClockWindow : Window
         GrainOverlay.Fill = GrainHelper.CreateBrush();
         Opacity = 0;
         SourceInitialized += OnSourceInitialized;
-        Loaded += OnLoaded;
     }
 
     public void PositionOnMonitor(System.Drawing.Rectangle physBounds)
@@ -34,18 +33,23 @@ public partial class ClockWindow : Window
     private void OnSourceInitialized(object? sender, EventArgs e) =>
         Win32.InitToolWindow(new WindowInteropHelper(this).Handle, _physBounds);
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// Démarre l'animation d'entrée. Appelé par AppController quand toutes
+    /// les fenêtres sont chargées, pour synchroniser les fonds au pixel près.
+    /// </summary>
+    public void BeginEntrance()
     {
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-        // Phase 1 — aiguilles sur fond transparent
+        // Phase 1 — aiguilles sur fond transparent (bureau visible)
         var phase1 = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(700)) { EasingFunction = ease };
         phase1.Completed += (_, _) =>
         {
-            // Phase 2 — fond plein écran + marqueurs + cadran numérique
-            var phase2 = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800)) { EasingFunction = ease };
-            BackgroundRect.BeginAnimation(OpacityProperty, phase2);
-            GrainOverlay.BeginAnimation(OpacityProperty, phase2);
+            // Phase 2 — fond + grain + marqueurs + filigrane
+            var bgAnim    = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800)) { EasingFunction = ease };
+            var grainAnim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(800)) { EasingFunction = ease };
+            BackgroundRect.BeginAnimation(OpacityProperty, bgAnim);
+            GrainOverlay.BeginAnimation(OpacityProperty, grainAnim);
             ClockControl.StartReveal();
         };
         BeginAnimation(OpacityProperty, phase1);
