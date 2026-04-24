@@ -81,7 +81,12 @@ public sealed class AppController : IDisposable
 
     private void OnTopologyChanged(object? sender, EventArgs e)
     {
-        if (_clockWindow is not null) { CloseWindows(); OpenWindows(); }
+        if (_clockWindow is not null)
+            { CloseWindows(); OpenWindows(); }
+        else
+            // Win+P (or any topology change) is user activity — reset idle state so
+            // detection restarts cleanly regardless of any prior intermediate state.
+            _idle.ForceActivity();
     }
 
     // ── Open ──────────────────────────────────────────────────────────────────
@@ -101,7 +106,7 @@ public sealed class AppController : IDisposable
         _graceTimer.Start();
 
         var primary = _monitors.PrimaryMonitor;
-        if (primary is null) return;
+        if (primary is null) { _idle.ForceActivity(); return; }
 
         if (_monitors.CurrentTopology == MonitorTopology.DualMonitor)
             OpenDual(primary);
