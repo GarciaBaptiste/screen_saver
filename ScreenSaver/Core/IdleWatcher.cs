@@ -13,8 +13,14 @@ public sealed class IdleWatcher : IDisposable
 
     private readonly DispatcherTimer _timer;
     private readonly MediaInhibitor  _media;
-    private readonly int             _thresholdMs;
+    private          int             _thresholdMs;
     private bool _isIdle;
+
+    public int ThresholdSeconds
+    {
+        get => _thresholdMs / 1000;
+        set => _thresholdMs = value * 1000;
+    }
 
     public event EventHandler? IdleStarted;
     public event EventHandler? ActivityResumed;

@@ -7,11 +7,22 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RootNamespace>ScreenSaver</RootNamespace>
     <AssemblyName>ScreenSaver</AssemblyName>
     <Platforms>x64</Platforms>
+    <!-- WinForms (NotifyIcon) veut gérer le DPI via SetHighDpiMode ; notre
+         app.manifest PerMonitorV2 est la bonne approche pour WPF — on supprime l'avertissement. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
+
+  <!-- UseWindowsForms injecte des global usings (System.Drawing, System.Windows.Forms)
+       qui entrent en conflit avec les types WPF — on les supprime. -->
+  <ItemGroup>
+    <Using Remove="System.Drawing" />
+    <Using Remove="System.Windows.Forms" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- config.json is copied to the output dir so the app finds it next to the exe.
@@ -20,5 +31,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
 
 </Project>

@@ -196,7 +196,15 @@ public sealed class AppController : IDisposable
 
     private void OnWakeFromInput() => _idle.ForceActivity();
 
-    // ── Theme ─────────────────────────────────────────────────────────────────
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    public bool IsActive => _clockWindow is not null;
+
+    public void Toggle()
+    {
+        if (_clockWindow is null) _idle.ForceIdle();
+        else                      _idle.ForceActivity();
+    }
 
     public void ApplyTheme(string theme) => _theme.Apply(theme);
 
