@@ -1,0 +1,125 @@
+<Window x:Class="ScreenSaver.Windows.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Paramètres — ScreenSaver"
+        Width="400" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="Section" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,4,0,4"/>
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="Width" Value="120"/>
+        </Style>
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="Opacity" Value="0.25"/>
+            <Setter Property="Margin" Value="0,16,0,16"/>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="28,24,28,24">
+
+        <!-- ── Général ─────────────────────────────────────────────────────── -->
+        <TextBlock Text="GÉNÉRAL" Style="{StaticResource Section}"/>
+
+        <!-- Délai d'inactivité -->
+        <Grid Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Délai d'inactivité"/>
+            <TextBlock x:Name="ThresholdLabel" Grid.Column="1"
+                       Foreground="{DynamicResource MutedBrush}" Margin="8,0,0,0"/>
+        </Grid>
+        <Slider x:Name="ThresholdSlider"
+                Minimum="30" Maximum="600" TickFrequency="30" IsSnapToTickEnabled="True"
+                Margin="0,0,0,14"
+                ValueChanged="OnThresholdChanged"/>
+
+        <!-- Thème -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Thème"/>
+            <ComboBox x:Name="ThemeCombo" Grid.Column="1">
+                <ComboBoxItem Content="Sombre" Tag="dark"/>
+                <ComboBoxItem Content="Clair"  Tag="light"/>
+            </ComboBox>
+        </Grid>
+
+        <Separator/>
+
+        <!-- ── Horloge ─────────────────────────────────────────────────────── -->
+        <TextBlock Text="HORLOGE" Style="{StaticResource Section}"/>
+
+        <CheckBox x:Name="WatermarkCheck" Content="Filigrane numérique HH:mm"
+                  Checked="OnWatermarkToggle" Unchecked="OnWatermarkToggle"/>
+
+        <Grid Margin="0,8,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Opacité du filigrane"/>
+            <TextBlock x:Name="OpacityLabel" Grid.Column="1"
+                       Foreground="{DynamicResource MutedBrush}" Margin="8,0,0,0"/>
+        </Grid>
+        <Slider x:Name="OpacitySlider"
+                Minimum="0.05" Maximum="0.40" TickFrequency="0.05" IsSnapToTickEnabled="True"
+                Margin="0,0,0,4"
+                ValueChanged="OnOpacityChanged"/>
+
+        <Separator/>
+
+        <!-- ── Calendrier ──────────────────────────────────────────────────── -->
+        <TextBlock Text="CALENDRIER" Style="{StaticResource Section}"/>
+
+        <CheckBox x:Name="MonthGridCheck" Content="Afficher la grille du mois"/>
+
+        <Grid Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Premier jour de la semaine"/>
+            <ComboBox x:Name="FirstDayCombo" Grid.Column="1">
+                <ComboBoxItem Content="Lundi"    Tag="Monday"/>
+                <ComboBoxItem Content="Dimanche" Tag="Sunday"/>
+            </ComboBox>
+        </Grid>
+
+        <!-- ── Boutons ─────────────────────────────────────────────────────── -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
+            <Button Content="Annuler" Width="90" Padding="0,7" Margin="0,0,10,0"
+                    Click="OnCancel"/>
+            <Button Content="Enregistrer" Width="115" Padding="0,7"
+                    Background="{DynamicResource AccentBrush}"
+                    Foreground="White" BorderThickness="0"
+                    Click="OnSave"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

@@ -13,11 +13,12 @@ Pas un `.scr` natif — un `.exe` standalone qui gère lui-même l'idle detectio
 - **.NET 8 / WPF** — pas de framework MVVM externe
 - **P/Invoke Win32** — centralisé dans `Native/Win32.cs`
 - **Windows.Media.Control (WinRT/SMTC)** — détection lecture vidéo navigateur/media players
+- **System.Windows.Forms** — `NotifyIcon` tray icon uniquement (`UseWindowsForms=true` ; global usings `System.Drawing` et `System.Windows.Forms` supprimés pour éviter les conflits WPF)
 - **System.Text.Json** — config
 - Publication : `dotnet publish -r win-x64 --self-contained`
 - TFM : `net8.0-windows10.0.19041.0` (requis pour WinRT)
 
-## État actuel — Phase 2 terminée
+## État actuel — Phase 4 terminée
 
 **Phase 1 ✅** : MVP complet et fonctionnel.
 
@@ -32,6 +33,16 @@ Pas un `.scr` natif — un `.exe` standalone qui gère lui-même l'idle detectio
 - Animation d'entrée séquencée (voir § Animation d'entrée)
 
 **Phase 3 🔜** : Données externes calendrier.
+
+**Phase 4 ✅** : Icône système + panneau de contrôle.
+- `System.Windows.Forms.NotifyIcon` — WinForms intégré .NET 8 Windows, zéro NuGet externe
+- Icône horloge dessinée en GDI+ (cadran + aiguilles + dot AccentBrush 32×32 px)
+- Menu contextuel (clic droit) : Activer/Masquer · Paramètres… · Quitter
+- Libellé Activer/Masquer mis à jour dynamiquement à l'ouverture du menu
+- Double-clic sur l'icône → ouvre `SettingsWindow`
+- Si le screensaver est actif à l'ouverture des paramètres, il est fermé d'abord
+- `SettingsWindow` : délai inactivité (slider 30 s–10 min, pas 30 s) · thème Dark/Clair · filigrane + opacité · grille mois · premier jour semaine
+- Enregistrer applique le thème et le seuil idle à chaud ; fenêtres clock/calendar au prochain cycle
 
 ## Architecture
 
@@ -191,7 +202,8 @@ screen_saver/
     │   └── Theme.Light.xaml
     ├── Windows/
     │   ├── ClockWindow.xaml / .cs   ← GrainOverlay Rectangle en dernier dans Grid
-    │   └── CalendarWindow.xaml / .cs
+    │   ├── CalendarWindow.xaml / .cs
+    │   └── SettingsWindow.xaml / .cs ← panneau paramètres (ouvert depuis le tray icon)
     ├── Controls/
     │   ├── AnalogClock.xaml / .cs   ← OverlayCanvas pour filigrane natif ClearType
     │   └── CalendarView.xaml / .cs
@@ -216,4 +228,4 @@ screen_saver/
 - **Phase 1** ✅ MVP fonctionnel (terminée)
 - **Phase 2** ✅ Polish visuel skeuomorphique (terminée)
 - **Phase 3** 🔜 Données externes calendrier
-- **Phase 4** UI de configuration + tray icon
+- **Phase 4** ✅ Icône système + panneau de contrôle (terminée)
