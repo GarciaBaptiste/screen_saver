@@ -75,10 +75,10 @@ public sealed class AppController : IDisposable
         };
         win.Show();
 
-        // Vert = timer en cours (compte l'inactivité)
-        // Rouge = timer arrêté (économiseur actif, ou remis à zéro)
-        _idle.TimerRunningChanged += (_, isRunning) =>
-            _debugDot.Fill = isRunning ? Brushes.Green : Brushes.Red;
+        // Vert = timer tourne (en attente d'inactivité)
+        // Rouge = idle déclenché (seuil atteint) ou activité détectée
+        _idle.IdleStarted     += (_, _) => _debugDot.Fill = Brushes.Red;
+        _idle.ActivityResumed += (_, _) => _debugDot.Fill = Brushes.Green;
     }
 
     // ── F15 hotkey ────────────────────────────────────────────────────────────
