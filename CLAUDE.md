@@ -58,11 +58,15 @@ AppController
 
 `IdleWatcher` combine deux sources :
 1. `GetLastInputInfo` (polling 1 s) — souris ET clavier
-2. `MediaInhibitor` (polling 5 s) — SMTC API : si une session est `Playing`, idle suspendu
+2. `MediaInhibitor` (polling 5 s) — SMTC API : inhibe seulement si une session `Playing` a `PlaybackType.Video`
+
+Musique seule (Apple Music, Spotify, etc.) ne bloque **pas** le screensaver. `MediaInhibitor` exclut explicitement les apps audio connues via `_audioAppKeywords` — certaines (Apple Music) déclarent `PlaybackType.Video` pour leur rendu d'album art animé.
 
 `MediaInhibitor.InitializeAsync()` est lancé en fire-and-forget au démarrage (SMTC peut bloquer indéfiniment sur certaines machines). `idle.Start()` est appelé immédiatement après, sans attendre SMTC.
 
 Grace period de 600 ms sur `MouseMove` après ouverture des fenêtres (WPF génère un MouseMove synthétique quand une fenêtre apparaît sous le curseur). Les clics et touches sont toujours immédiats.
+
+`OnTopologyChanged` (Win+P, déconnexion moniteur) appelle `ForceActivity()` quand le screensaver est fermé — garantit que `_isIdle` et le timer sont dans un état propre après un changement de topologie.
 
 ## Hotkey manuel
 
