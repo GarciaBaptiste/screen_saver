@@ -10,6 +10,9 @@ public sealed class AppConfig
     [JsonPropertyName("theme")]
     public string Theme { get; set; } = "dark";
 
+    [JsonPropertyName("accent_color")]
+    public string AccentColor { get; set; } = "#E93F29";
+
     [JsonPropertyName("clock")]
     public ClockConfig Clock { get; set; } = new();
 
