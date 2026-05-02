@@ -1,7 +1,7 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Globalization;
 using ScreenSaver.Core;
 
 namespace ScreenSaver.Windows;
@@ -27,13 +27,14 @@ public partial class SettingsWindow : Window
     private readonly ConfigService _config;
     private readonly ThemeService  _theme;
     private readonly IdleWatcher   _idle;
-    private static readonly double[] OpacityValues = { 0.08, 0.15, 0.28, 0.50 };
+    private readonly string        _originalAccent;
 
     public SettingsWindow(ConfigService config, ThemeService theme, IdleWatcher idle)
     {
-        _config = config;
-        _theme  = theme;
-        _idle   = idle;
+        _config         = config;
+        _theme          = theme;
+        _idle           = idle;
+        _originalAccent = theme.CurrentAccent;
         InitializeComponent();
         LoadSettings();
     }
@@ -48,7 +49,7 @@ public partial class SettingsWindow : Window
         SelectThemeSwatch(cfg.Theme);
         SelectAccentSwatch(cfg.AccentColor);
 
-        SelectOpacityRadio(cfg.Clock.ShowDigitalWatermark, cfg.Clock.WatermarkOpacity);
+        WatermarkCheck.IsChecked = cfg.Clock.ShowDigitalWatermark;
 
         MonthGridCheck.IsChecked = cfg.Calendar.ShowMonthGrid;
         foreach (RadioButton rb in FirstDayPanel.Children)
@@ -66,21 +67,17 @@ public partial class SettingsWindow : Window
     {
         var tag = (string)((RadioButton)sender).Tag;
         var hex = tag == "random" ? App.ResolveAccent("random") : tag;
-        var color = (System.Windows.Media.Color)
-            System.Windows.Media.ColorConverter.ConvertFromString(hex);
-        Resources["S.Accent"] = new System.Windows.Media.SolidColorBrush(color);
+        _theme.ApplyAccent(hex);
     }
 
     private void OnSave(object sender, RoutedEventArgs e)
     {
         var cfg = _config.Config;
-        var (enabled, opacity) = SelectedOpacity();
 
         cfg.IdleThresholdSeconds       = (int)ThresholdSlider.Value;
         cfg.Theme                      = SelectedTheme();
         cfg.AccentColor                = SelectedAccentHex();
-        cfg.Clock.ShowDigitalWatermark = enabled;
-        cfg.Clock.WatermarkOpacity     = opacity;
+        cfg.Clock.ShowDigitalWatermark = WatermarkCheck.IsChecked == true;
         cfg.Calendar.ShowMonthGrid     = MonthGridCheck.IsChecked == true;
         cfg.Calendar.FirstDayOfWeek    = FirstDayPanel.Children.OfType<RadioButton>()
                                              .FirstOrDefault(rb => rb.IsChecked == true)
@@ -95,7 +92,10 @@ public partial class SettingsWindow : Window
     }
 
     private void OnCancel(object sender, RoutedEventArgs e)
-        => DialogResult = false;
+    {
+        _theme.ApplyAccent(_originalAccent);
+        DialogResult = false;
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -122,38 +122,7 @@ public partial class SettingsWindow : Window
     {
         foreach (RadioButton rb in AccentPanel.Children)
             if (rb.IsChecked == true) return (string)rb.Tag;
-        return "#BF4E16";
-    }
-
-    private void SelectOpacityRadio(bool enabled, double value)
-    {
-        if (!enabled)
-        {
-            foreach (RadioButton rb in OpacityPanel.Children)
-                rb.IsChecked = (string)rb.Tag == "off";
-            return;
-        }
-        double best = OpacityValues.MinBy(v => Math.Abs(v - value));
-        foreach (RadioButton rb in OpacityPanel.Children)
-        {
-            if (double.TryParse((string)rb.Tag, NumberStyles.Float,
-                                CultureInfo.InvariantCulture, out double v))
-                rb.IsChecked = Math.Abs(v - best) < 0.001;
-        }
-    }
-
-    private (bool enabled, double opacity) SelectedOpacity()
-    {
-        foreach (RadioButton rb in OpacityPanel.Children)
-        {
-            if (rb.IsChecked != true) continue;
-            var tag = (string)rb.Tag;
-            if (tag == "off") return (false, 0.15);
-            if (double.TryParse(tag, NumberStyles.Float,
-                                CultureInfo.InvariantCulture, out double v))
-                return (true, v);
-        }
-        return (true, 0.15);
+        return "#E93F29";
     }
 
     private static string FormatThreshold(int secs)

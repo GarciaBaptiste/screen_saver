@@ -62,7 +62,16 @@ public partial class CalendarView : UserControl
         DayOfWeekText.Text = dayOfWeek;
         DayNumberText.Text = dayNumber;
         MonthYearText.Text = monthYear;
-        BuildMonthGrid(MonthGrid, today, firstDay);
+
+        if (config.Calendar.ShowMonthGrid)
+        {
+            MonthGrid.Visibility = Visibility.Visible;
+            BuildMonthGrid(MonthGrid, today, firstDay);
+        }
+        else
+        {
+            MonthGrid.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void BuildMonthGrid(Grid container, DateTime today, DayOfWeek firstDay)

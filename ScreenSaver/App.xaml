@@ -5,8 +5,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Initial theme — overwritten by ThemeService at startup -->
-                <ResourceDictionary Source="/Themes/Theme.Dark.xaml"/>
+                <ResourceDictionary Source="/Themes/Palette.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
