@@ -33,6 +33,7 @@ public partial class App : Application
         _idle        = new IdleWatcher(media, config.IdleThresholdSeconds);
 
         _theme.Apply(config.Theme);
+        _theme.ApplyAccent(ResolveAccent(config.AccentColor));
         _controller = new AppController(_configService, monitors, media, _idle, _theme);
 
         _ = media.InitializeAsync();
@@ -70,7 +71,7 @@ public partial class App : Application
             ContextMenuStrip = menu,
             Visible          = true,
         };
-        _trayIcon.DoubleClick += (_, _) => OpenSettings();
+        _trayIcon.MouseClick += (_, e) => { if (e.Button == WF.MouseButtons.Left) OpenSettings(); };
     }
 
     private void OpenSettings()
@@ -99,6 +100,14 @@ public partial class App : Application
 
         return Icon.FromHandle(bmp.GetHicon());
     }
+
+    public static readonly string[] AccentColors = { "#E93F29", "#EEA929", "#6518EA", "#00A745" };
+    private static readonly Random  _rng = new();
+
+    public static string ResolveAccent(string value) =>
+        value == "random"
+            ? AccentColors[_rng.Next(AccentColors.Length)]
+            : value;
 
     protected override void OnExit(ExitEventArgs e)
     {

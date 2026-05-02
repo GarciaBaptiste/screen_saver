@@ -95,6 +95,9 @@ public sealed class AppController : IDisposable
     {
         if (_clockWindow is not null) return;
 
+        if (_config.Config.AccentColor == "random")
+            _theme.ApplyAccent(App.ResolveAccent("random"));
+
         _idle.Stop();
         _mouseMoveWakeEnabled = false;
 
